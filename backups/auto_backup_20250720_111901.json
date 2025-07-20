@@ -1,5 +1,5 @@
 {
-  "timestamp": "2025-07-20T10:36:03.302734",
+  "timestamp": "2025-07-20T11:19:01.010140",
   "version": "1.0",
   "users": [
     {
@@ -15,7 +15,18 @@
       "updated_at": "2025-07-20T10:35:14.814598"
     }
   ],
-  "access_keys": [],
+  "access_keys": [
+    {
+      "id": 1,
+      "key_code": "TESTKEY123456789",
+      "user_name": "Test User",
+      "user_email": "test@example.com",
+      "status": "active",
+      "created_by_admin": true,
+      "created_at": "2025-07-20T10:55:00.409332",
+      "used_at": null
+    }
+  ],
   "pine_scripts": [
     {
       "id": 1,
