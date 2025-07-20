@@ -320,28 +320,45 @@ def admin_remove_access():
 @main_bp.route('/api/validate-username', methods=['POST'])
 @login_required
 def api_validate_username():
+    logging.debug(f"Username validation request received from user: {current_user.email}")
+    
     if current_user.is_admin:
         return jsonify({'success': False, 'message': 'Admin accounts cannot manage TradingView access'})
     
-    data = request.get_json()
-    username = data.get('username', '').strip()
-    
-    if not username:
-        return jsonify({'success': False, 'message': 'Username is required'})
-    
-    # Check if user already has access and username is different
-    if current_user.has_generated_access and current_user.tradingview_username != username:
-        return jsonify({
-            'success': False, 
-            'message': f'You already have access granted for "{current_user.tradingview_username}". Please remove all access before switching users.'
-        })
-    
     try:
-        tv_api = TradingViewAPI()
+        data = request.get_json()
+        logging.debug(f"Request data: {data}")
+        
+        if not data:
+            return jsonify({'success': False, 'message': 'No data received'})
+            
+        username = data.get('username', '').strip()
+        logging.debug(f"Username to validate: '{username}'")
+        
+        if not username:
+            return jsonify({'success': False, 'message': 'Username is required'})
+        
+        # Check if user already has access and username is different
+        if current_user.has_generated_access and current_user.tradingview_username != username:
+            return jsonify({
+                'success': False, 
+                'message': f'You already have access granted for "{current_user.tradingview_username}". Please remove all access before switching users.'
+            })
+        
+        try:
+            tv_api = TradingViewAPI()
+            logging.debug(f"TradingView API initialized successfully")
+        except Exception as api_init_error:
+            logging.error(f"Failed to initialize TradingView API: {str(api_init_error)}")
+            return jsonify({'success': False, 'message': f'TradingView API initialization failed: {str(api_init_error)}'})
+        
+        logging.debug(f"Calling TradingView API to validate username: {username}")
         result = tv_api.validate_username(username)
+        logging.debug(f"TradingView API result: {result}")
         
         if result.get('validuser', False):
             verified_username = result.get('verifiedUserName', username)
+            logging.info(f"Username validation successful: {verified_username}")
             return jsonify({
                 'success': True,
                 'message': f'Username "{verified_username}" is valid',
@@ -351,6 +368,7 @@ def api_validate_username():
                 }
             })
         else:
+            logging.warning(f"Username validation failed for: {username}")
             return jsonify({
                 'success': False,
                 'message': f'Username "{username}" not found on TradingView'
