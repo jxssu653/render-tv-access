@@ -90,9 +90,9 @@ def register():
     flash('Account created successfully! Welcome to TradingView Access Manager.', 'success')
     return redirect(url_for('main.manage'))
 
-# Login page
+# User login page (separate from admin)
 @main_bp.route('/login', methods=['GET', 'POST'])
-def login():
+def manage_login():
     if request.method == 'POST':
         email = request.form.get('email', '').strip()
         password = request.form.get('password', '').strip()
@@ -101,19 +101,46 @@ def login():
             flash('Email and password are required', 'error')
             return render_template('login.html')
         
-        user = User.query.filter_by(email=email).first()
-        
+        # Find user by email (only non-admin users)
+        user = User.query.filter_by(email=email, is_admin=False).first()
         if user and user.check_password(password):
             login_user(user)
             next_page = request.args.get('next')
-            if user.is_admin:
-                return redirect(next_page) if next_page else redirect(url_for('main.admin'))
-            else:
-                return redirect(next_page) if next_page else redirect(url_for('main.manage'))
+            return redirect(next_page) if next_page else redirect(url_for('main.manage'))
         else:
             flash('Invalid email or password', 'error')
     
     return render_template('login.html')
+
+# Admin login page (simplified with access code)
+@main_bp.route('/admin/login', methods=['GET', 'POST'])
+def admin_login():
+    if request.method == 'POST':
+        access_code = request.form.get('access_code', '').strip()
+        
+        if not access_code:
+            flash('Access code is required', 'error')
+            return render_template('admin_login.html')
+        
+        # Check if access code is correct
+        if access_code == 'ACCESS123':
+            # Find admin user
+            admin_user = User.query.filter_by(is_admin=True).first()
+            if admin_user:
+                login_user(admin_user)
+                next_page = request.args.get('next')
+                return redirect(next_page) if next_page else redirect(url_for('main.admin'))
+            else:
+                flash('Admin user not found. Please contact system administrator.', 'error')
+        else:
+            flash('Invalid access code', 'error')
+    
+    return render_template('admin_login.html')
+
+# Keep original login route for backwards compatibility  
+@main_bp.route('/old-login', methods=['GET', 'POST'])
+def login():
+    return redirect(url_for('main.manage_login'))
 
 # Logout
 @main_bp.route('/logout')
@@ -128,6 +155,7 @@ def logout():
 @login_required
 def manage():
     if current_user.is_admin:
+        flash('Admin users should use the admin panel. Redirecting...', 'info')
         return redirect(url_for('main.admin'))
     
     return render_template('manage.html')
@@ -138,7 +166,7 @@ def manage():
 def admin():
     if not current_user.is_admin:
         flash('Access denied. Admin privileges required.', 'error')
-        return redirect(url_for('main.manage'))
+        return redirect(url_for('main.admin_login'))
     
     # Get all access keys with their associated users
     access_keys = AccessKey.query.order_by(AccessKey.created_at.desc()).all()

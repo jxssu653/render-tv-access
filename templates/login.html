@@ -10,9 +10,9 @@
                 <div class="card-header bg-dark text-white text-center py-4">
                     <h3 class="mb-0">
                         <i class="fas fa-user-circle me-2"></i>
-                        Login
+                        User Login
                     </h3>
-                    <p class="mb-0 mt-2 opacity-75">Access your account</p>
+                    <p class="mb-0 mt-2 opacity-75">Access your TradingView management</p>
                 </div>
                 <div class="card-body p-4">
                     <form method="post">
@@ -50,10 +50,15 @@
                         <span class="text-muted">or</span>
                     </div>
                     
-                    <!-- Back to Key Entry -->
-                    <a href="{{ url_for('main.index') }}" class="btn btn-outline-secondary w-100">
-                        <i class="fas fa-key me-2"></i>Use Access Key Instead
-                    </a>
+                    <!-- Navigation Links -->
+                    <div class="d-grid gap-2">
+                        <a href="{{ url_for('main.index') }}" class="btn btn-outline-secondary">
+                            <i class="fas fa-key me-2"></i>Use Access Key Instead
+                        </a>
+                        <a href="{{ url_for('main.admin_login') }}" class="btn btn-outline-warning">
+                            <i class="fas fa-shield-alt me-2"></i>Admin Access
+                        </a>
+                    </div>
                 </div>
                 <div class="card-footer text-center text-muted">
                     <small>

@@ -1,0 +1,111 @@
+{
+  "timestamp": "2025-07-20T10:49:23.850350",
+  "version": "1.0",
+  "users": [
+    {
+      "id": 1,
+      "email": "admin@tradingview.com",
+      "password_hash": "scrypt:32768:8:1$AUyWOHoUidoa7vzw$c01ea3ddefc40e3c2f95872a33fbc468ed13093371b77ba1ba9180d69b473f21e92b67e5e17136053b67c1a4f64f30e392cdef2bd31f72fff7238f4c029a7724",
+      "name": "Admin User",
+      "is_admin": true,
+      "access_key_id": null,
+      "tradingview_username": null,
+      "has_generated_access": false,
+      "created_at": "2025-07-20T10:35:14.814595",
+      "updated_at": "2025-07-20T10:35:14.814598"
+    }
+  ],
+  "access_keys": [],
+  "pine_scripts": [
+    {
+      "id": 1,
+      "name": "Ultraalgo",
+      "pine_id": "PUB;0c59036edcae4c8684c8e17c01eaf137",
+      "description": "Advanced trading algorithm",
+      "active": true,
+      "created_at": "2025-07-20T10:35:34.140215"
+    },
+    {
+      "id": 2,
+      "name": "simplealgo",
+      "pine_id": "PUB;a1b2c3d4e5f6789012345678901234ab",
+      "description": "Simple trading algorithm",
+      "active": true,
+      "created_at": "2025-07-20T10:35:34.140221"
+    },
+    {
+      "id": 3,
+      "name": "Million moves",
+      "pine_id": "PUB;b2c3d4e5f6789012345678901234abcd",
+      "description": "Million moves strategy",
+      "active": true,
+      "created_at": "2025-07-20T10:35:34.140222"
+    },
+    {
+      "id": 4,
+      "name": "luxalgo",
+      "pine_id": "PUB;c3d4e5f6789012345678901234abcdef",
+      "description": "Luxury algorithm",
+      "active": true,
+      "created_at": "2025-07-20T10:35:34.140225"
+    },
+    {
+      "id": 5,
+      "name": "lux Osi Matrix",
+      "pine_id": "PUB;d4e5f6789012345678901234abcdef01",
+      "description": "Lux OSI Matrix indicator",
+      "active": true,
+      "created_at": "2025-07-20T10:35:34.140227"
+    },
+    {
+      "id": 6,
+      "name": "infnity algo",
+      "pine_id": "PUB;e5f6789012345678901234abcdef0123",
+      "description": "Infinity algorithm",
+      "active": true,
+      "created_at": "2025-07-20T10:35:34.140228"
+    },
+    {
+      "id": 7,
+      "name": "Diamond algo",
+      "pine_id": "PUB;f6789012345678901234abcdef012345",
+      "description": "Diamond pattern algorithm",
+      "active": true,
+      "created_at": "2025-07-20T10:35:34.140228"
+    },
+    {
+      "id": 8,
+      "name": "Blue signals",
+      "pine_id": "PUB;6789012345678901234abcdef0123456",
+      "description": "Blue signal indicator",
+      "active": true,
+      "created_at": "2025-07-20T10:35:34.140229"
+    },
+    {
+      "id": 9,
+      "name": "Goatalgo",
+      "pine_id": "PUB;789012345678901234abcdef01234567",
+      "description": "GOAT algorithm",
+      "active": true,
+      "created_at": "2025-07-20T10:35:34.140230"
+    },
+    {
+      "id": 10,
+      "name": "xpalgo",
+      "pine_id": "PUB;89012345678901234abcdef012345678",
+      "description": "XP algorithm",
+      "active": true,
+      "created_at": "2025-07-20T10:35:34.140231"
+    },
+    {
+      "id": 11,
+      "name": "NovaAlgo",
+      "pine_id": "PUB;9012345678901234abcdef0123456789",
+      "description": "Nova algorithm",
+      "active": true,
+      "created_at": "2025-07-20T10:35:34.140232"
+    }
+  ],
+  "user_accesses": [],
+  "access_logs": []
+}
