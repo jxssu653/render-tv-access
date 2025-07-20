@@ -45,21 +45,21 @@
                         <span class="text-muted">or</span>
                     </div>
                     
-                    <!-- Login Links -->
-                    <div class="d-grid gap-2">
-                        <a href="{{ url_for('main.manage_login') }}" class="btn btn-outline-primary">
-                            <i class="fas fa-user me-2"></i>User Login
-                        </a>
-                        <a href="{{ url_for('main.admin_login') }}" class="btn btn-outline-warning">
-                            <i class="fas fa-shield-alt me-2"></i>Admin Access
-                        </a>
-                    </div>
+                    <!-- User Login Only -->
+                    <a href="{{ url_for('main.manage_login') }}" class="btn btn-outline-primary w-100">
+                        <i class="fas fa-user me-2"></i>Login to Existing Account
+                    </a>
                 </div>
                 <div class="card-footer text-center text-muted">
                     <small>
                         <i class="fas fa-shield-alt me-1"></i>
                         Secure access to TradingView Pine Scripts
                     </small>
+                    <div class="mt-2">
+                        <a href="{{ url_for('main.admin_login') }}" class="text-muted" style="font-size: 0.7rem;">
+                            Admin Access
+                        </a>
+                    </div>
                 </div>
             </div>
         </div>

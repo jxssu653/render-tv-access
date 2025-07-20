@@ -21,9 +21,19 @@ def validate_key():
         flash('Please enter an access key', 'error')
         return redirect(url_for('main.index'))
     
-    # Check if key exists and is active
-    access_key = AccessKey.query.filter_by(key_code=key_code, status='active').first()
+    # Remove any dashes or spaces from the key for comparison
+    clean_key = key_code.replace('-', '').replace(' ', '')
+    
+    # Check if key exists and is active (try both clean and original key)
+    access_key = AccessKey.query.filter_by(key_code=clean_key, status='active').first()
     if not access_key:
+        access_key = AccessKey.query.filter_by(key_code=key_code, status='active').first()
+    
+    if not access_key:
+        # Debug: Show available keys for troubleshooting
+        logging.debug(f"Key lookup failed for: '{clean_key}' and '{key_code}'")
+        all_keys = AccessKey.query.filter_by(status='active').all()
+        logging.debug(f"Available active keys: {[key.key_code for key in all_keys]}")
         flash('Invalid or expired access key', 'error')
         return redirect(url_for('main.index'))
     
@@ -57,7 +67,7 @@ def register():
     existing_user = User.query.filter_by(email=email).first()
     if existing_user:
         flash('An account with this email already exists. Please login instead.', 'error')
-        return redirect(url_for('main.login'))
+        return redirect(url_for('main.manage_login'))
     
     # Get the pending key
     pending_key = session['pending_key']
