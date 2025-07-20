@@ -1,0 +1,29 @@
+services:
+  - type: web
+    name: tradingview-access-manager
+    env: python
+    buildCommand: "pip install -r render_requirements.txt"
+    startCommand: "gunicorn --bind 0.0.0.0:$PORT --reuse-port --reload main:app"
+    plan: free
+    region: oregon
+    branch: main
+    envVars:
+      - key: DATABASE_URL
+        sync: false
+      - key: SESSION_SECRET
+        sync: false
+      - key: TRADINGVIEW_USERNAME
+        sync: false
+      - key: TRADINGVIEW_PASSWORD
+        sync: false
+      - key: FLASK_ENV
+        value: production
+      - key: PYTHONUNBUFFERED
+        value: "1"
+    autoDeploy: false
+  
+  - type: pserv
+    name: tradingview-database
+    plan: free
+    databaseName: tradingview_access_db
+    region: oregon
