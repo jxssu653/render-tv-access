@@ -166,34 +166,47 @@ class TradingViewAPI:
     def validate_username(self, username):
         """Validate if a TradingView username exists using real TradingView API"""
         try:
+            logger.info(f"Starting username validation for: {username}")
+            
             if not self._ensure_authenticated():
-                return {"validuser": False, "verifiedUserName": ""}
+                logger.error("Authentication failed for username validation")
+                return {"validuser": False, "verifiedUserName": "", "error": "Authentication failed"}
             
             # Use TradingView's username hint API for accurate validation
             hint_url = f"{self.base_url}/username_hint/?s={username}"
-            response = self.session.get(hint_url)
+            logger.info(f"Making request to username hint API: {hint_url}")
+            
+            response = self.session.get(hint_url, timeout=10)
+            logger.info(f"Username hint API response status: {response.status_code}")
             
             if response.status_code == 200:
-                users_list = response.json()
-                valid_user = False
-                verified_name = ''
-                
-                for user in users_list:
-                    if user['username'].lower() == username.lower():
-                        valid_user = True
-                        verified_name = user['username']
-                        logger.info(f"Username validation successful: {verified_name}")
-                        return {"validuser": True, "verifiedUserName": verified_name}
-                
-                logger.warning(f"Username validation failed for: {username}")
-                return {"validuser": False, "verifiedUserName": ""}
+                try:
+                    users_list = response.json()
+                    logger.info(f"Username hint API returned {len(users_list)} users")
+                    
+                    for user in users_list:
+                        if user['username'].lower() == username.lower():
+                            verified_name = user['username']
+                            logger.info(f"Username validation successful: {verified_name}")
+                            return {"validuser": True, "verifiedUserName": verified_name}
+                    
+                    logger.warning(f"Username '{username}' not found in {len(users_list)} results")
+                    return {"validuser": False, "verifiedUserName": "", "error": "Username not found"}
+                    
+                except json.JSONDecodeError as e:
+                    logger.error(f"Failed to parse JSON response: {e}")
+                    return {"validuser": False, "verifiedUserName": "", "error": "Invalid API response"}
             else:
                 logger.error(f"Username hint API returned status: {response.status_code}")
-                return {"validuser": False, "verifiedUserName": ""}
+                logger.debug(f"Response content: {response.text[:200]}")
+                return {"validuser": False, "verifiedUserName": "", "error": f"API error: {response.status_code}"}
             
+        except requests.exceptions.Timeout:
+            logger.error("Username validation timed out")
+            return {"validuser": False, "verifiedUserName": "", "error": "Request timed out"}
         except Exception as e:
-            logger.error(f"Username validation error: {e}")
-            return {"validuser": False, "verifiedUserName": ""}
+            logger.error(f"Username validation error: {e}", exc_info=True)
+            return {"validuser": False, "verifiedUserName": "", "error": str(e)}
     
     def get_user_access(self, username, pine_ids):
         """Get current access status for user and pine scripts using real TradingView API"""
@@ -401,14 +414,23 @@ class TradingViewAPI:
         """Ensure session is authenticated"""
         # Check if current session is valid
         try:
-            test_response = self.session.get(f"{self.base_url}/chart/")
+            logger.info("Checking current session validity...")
+            test_response = self.session.get(f"{self.base_url}/chart/", timeout=10)
+            logger.debug(f"Session check response: {test_response.status_code}, URL: {test_response.url}")
+            
             if test_response.status_code == 200 and 'accounts/signin' not in test_response.url:
+                logger.info("Current session is valid")
                 return True
-        except:
-            pass
+            else:
+                logger.warning("Current session is invalid - needs re-authentication")
+        except Exception as e:
+            logger.error(f"Session check failed: {e}")
         
         # Session invalid, re-authenticate
-        return self._authenticate()
+        logger.info("Attempting to re-authenticate...")
+        auth_result = self._authenticate()
+        logger.info(f"Re-authentication result: {auth_result}")
+        return auth_result
     
     def _get_fresh_csrf_token(self):
         """Get a fresh CSRF token from the current session"""

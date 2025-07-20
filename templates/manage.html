@@ -380,7 +380,12 @@ function grantAccess() {
             pine_script_ids: selectedScripts
         })
     })
-    .then(response => response.json())
+    .then(response => {
+        if (!response.ok) {
+            throw new Error(`HTTP error! status: ${response.status}`);
+        }
+        return response.json();
+    })
     .then(data => {
         hideLoading();
         console.log('Grant access response:', data);
@@ -400,44 +405,6 @@ function grantAccess() {
         showAlert('❌ Error granting access: ' + error.message, 'danger');
     });
 }
-
-    const checkboxes = document.querySelectorAll('#pine-scripts-container input[type="checkbox"]:checked');
-    const selectedPineIds = Array.from(checkboxes).map(cb => cb.value);
-
-    if (selectedPineIds.length === 0) {
-        showAlert('Please select at least one Pine Script', 'warning');
-        return;
-    }
-
-    showLoading('Granting access...');
-
-    fetch('/api/grant-access', {
-        method: 'POST',
-        headers: {
-            'Content-Type': 'application/json',
-        },
-        body: JSON.stringify({
-            username: validatedUsername,
-            pine_ids: selectedPineIds
-        })
-    })
-    .then(response => response.json())
-    .then(data => {
-        hideLoading();
-        console.log('Grant access response:', data);
-        if (data.success) {
-            showAlert(data.message, 'success');
-            setTimeout(() => location.reload(), 2000);
-        } else {
-            showAlert(data.message, 'danger');
-            console.error('Grant access failed:', data);
-        }
-    })
-    .catch(error => {
-        hideLoading();
-        console.error('Grant access error:', error);
-        showAlert('Error granting access: ' + error.message, 'danger');
-    });
 }
 
 function removeAllAccess() {

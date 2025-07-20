@@ -320,41 +320,60 @@ def admin_remove_access():
 @main_bp.route('/api/validate-username', methods=['POST'])
 @login_required
 def api_validate_username():
-    logging.debug(f"Username validation request received from user: {current_user.email}")
+    logging.info(f"Username validation request received from user: {current_user.email}")
     
     if current_user.is_admin:
         return jsonify({'success': False, 'message': 'Admin accounts cannot manage TradingView access'})
     
     try:
         data = request.get_json()
-        logging.debug(f"Request data: {data}")
+        logging.info(f"Request data: {data}")
         
         if not data:
+            logging.error("No JSON data received in request")
             return jsonify({'success': False, 'message': 'No data received'})
             
         username = data.get('username', '').strip()
-        logging.debug(f"Username to validate: '{username}'")
+        logging.info(f"Username to validate: '{username}'")
         
         if not username:
+            logging.error("Empty username provided")
             return jsonify({'success': False, 'message': 'Username is required'})
         
         # Check if user already has access and username is different
         if current_user.has_generated_access and current_user.tradingview_username != username:
+            logging.warning(f"User already has access for different username: {current_user.tradingview_username}")
             return jsonify({
                 'success': False, 
                 'message': f'You already have access granted for "{current_user.tradingview_username}". Please remove all access before switching users.'
             })
         
+        # Initialize TradingView API
         try:
             tv_api = TradingViewAPI()
-            logging.debug(f"TradingView API initialized successfully")
+            logging.info("TradingView API initialized successfully")
+            
+            # Test authentication first
+            if not tv_api._ensure_authenticated():
+                logging.error("TradingView authentication failed")
+                return jsonify({
+                    'success': False, 
+                    'message': 'TradingView authentication failed. Please contact administrator.'
+                })
+            
+            logging.info("TradingView authentication verified")
+            
         except Exception as api_init_error:
             logging.error(f"Failed to initialize TradingView API: {str(api_init_error)}")
-            return jsonify({'success': False, 'message': f'TradingView API initialization failed: {str(api_init_error)}'})
+            return jsonify({
+                'success': False, 
+                'message': f'TradingView API initialization failed. Please contact administrator.'
+            })
         
-        logging.debug(f"Calling TradingView API to validate username: {username}")
+        # Validate username
+        logging.info(f"Calling TradingView API to validate username: {username}")
         result = tv_api.validate_username(username)
-        logging.debug(f"TradingView API result: {result}")
+        logging.info(f"TradingView API validation result: {result}")
         
         if result.get('validuser', False):
             verified_username = result.get('verifiedUserName', username)
@@ -371,12 +390,15 @@ def api_validate_username():
             logging.warning(f"Username validation failed for: {username}")
             return jsonify({
                 'success': False,
-                'message': f'Username "{username}" not found on TradingView'
+                'message': f'Username "{username}" not found on TradingView. Please check the spelling and try again.'
             })
     
     except Exception as e:
-        logging.error(f"Username validation error: {str(e)}")
-        return jsonify({'success': False, 'message': f'Validation error: {str(e)}'})
+        logging.error(f"Username validation error: {str(e)}", exc_info=True)
+        return jsonify({
+            'success': False, 
+            'message': f'Server error during validation. Please try again or contact administrator.'
+        })
 
 @main_bp.route('/api/pine-scripts')
 @login_required
