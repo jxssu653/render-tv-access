@@ -163,7 +163,10 @@ def admin():
         
         key_data.append(key_info)
     
-    return render_template('admin.html', key_data=key_data)
+    # Get all Pine Scripts for management
+    pine_scripts = PineScript.query.order_by(PineScript.name).all()
+    
+    return render_template('admin.html', key_data=key_data, pine_scripts=pine_scripts)
 
 # Create new access key (admin only)
 @main_bp.route('/admin/create-key', methods=['POST'])
@@ -445,6 +448,150 @@ def api_grant_access():
             'success': False,
             'message': f'Server error: {str(e)}'
         })
+
+
+# Admin Pine Script Management Routes
+@main_bp.route('/admin/add-pine-script', methods=['POST'])
+@login_required
+def admin_add_pine_script():
+    if not current_user.is_admin:
+        return jsonify({'success': False, 'message': 'Admin access required'}), 403
+    
+    data = request.get_json()
+    name = data.get('name', '').strip()
+    pine_id = data.get('pine_id', '').strip()
+    description = data.get('description', '').strip()
+    
+    if not name or not pine_id:
+        return jsonify({'success': False, 'message': 'Name and Pine ID are required'})
+    
+    # Check if Pine Script with this ID already exists
+    existing_script = PineScript.query.filter_by(pine_id=pine_id).first()
+    if existing_script:
+        return jsonify({'success': False, 'message': 'Pine Script with this ID already exists'})
+    
+    try:
+        new_script = PineScript(
+            name=name,
+            pine_id=pine_id,
+            description=description,
+            active=True
+        )
+        db.session.add(new_script)
+        db.session.commit()
+        
+        return jsonify({
+            'success': True,
+            'message': f'Pine Script "{name}" added successfully',
+            'script': {
+                'id': new_script.id,
+                'name': new_script.name,
+                'pine_id': new_script.pine_id,
+                'description': new_script.description,
+                'active': new_script.active,
+                'created_at': new_script.created_at.strftime('%Y-%m-%d %H:%M')
+            }
+        })
+    
+    except Exception as e:
+        db.session.rollback()
+        logging.error(f"Error adding Pine Script: {str(e)}")
+        return jsonify({'success': False, 'message': f'Error adding Pine Script: {str(e)}'})
+
+
+@main_bp.route('/admin/delete-pine-script/<int:script_id>', methods=['DELETE'])
+@login_required
+def admin_delete_pine_script(script_id):
+    if not current_user.is_admin:
+        return jsonify({'success': False, 'message': 'Admin access required'}), 403
+    
+    script = PineScript.query.get(script_id)
+    if not script:
+        return jsonify({'success': False, 'message': 'Pine Script not found'})
+    
+    try:
+        # Check if any users have access to this script
+        user_accesses = UserAccess.query.filter_by(pine_script_id=script_id).all()
+        
+        if user_accesses:
+            # Remove all user accesses first
+            for access in user_accesses:
+                db.session.delete(access)
+            
+            # Log the removal
+            for access in user_accesses:
+                log_entry = AccessLog(
+                    user_id=current_user.id,
+                    username=access.tradingview_username,
+                    action='remove',
+                    pine_script_id=script.pine_id,
+                    status='success',
+                    details=f'Script deleted by admin: {current_user.email}'
+                )
+                db.session.add(log_entry)
+        
+        # Delete the script
+        db.session.delete(script)
+        db.session.commit()
+        
+        return jsonify({
+            'success': True,
+            'message': f'Pine Script "{script.name}" deleted successfully',
+            'removed_accesses': len(user_accesses)
+        })
+    
+    except Exception as e:
+        db.session.rollback()
+        logging.error(f"Error deleting Pine Script: {str(e)}")
+        return jsonify({'success': False, 'message': f'Error deleting Pine Script: {str(e)}'})
+
+
+@main_bp.route('/admin/toggle-pine-script/<int:script_id>', methods=['POST'])
+@login_required
+def admin_toggle_pine_script(script_id):
+    if not current_user.is_admin:
+        return jsonify({'success': False, 'message': 'Admin access required'}), 403
+    
+    script = PineScript.query.get(script_id)
+    if not script:
+        return jsonify({'success': False, 'message': 'Pine Script not found'})
+    
+    try:
+        script.active = not script.active
+        db.session.commit()
+        
+        status = 'activated' if script.active else 'deactivated'
+        return jsonify({
+            'success': True,
+            'message': f'Pine Script "{script.name}" {status} successfully',
+            'active': script.active
+        })
+    
+    except Exception as e:
+        db.session.rollback()
+        logging.error(f"Error toggling Pine Script: {str(e)}")
+        return jsonify({'success': False, 'message': f'Error toggling Pine Script: {str(e)}'})
+
+
+@main_bp.route('/admin/pine-scripts', methods=['GET'])
+@login_required
+def admin_get_pine_scripts():
+    if not current_user.is_admin:
+        return jsonify({'success': False, 'message': 'Admin access required'}), 403
+    
+    scripts = PineScript.query.order_by(PineScript.name).all()
+    return jsonify({
+        'success': True,
+        'scripts': [{
+            'id': script.id,
+            'name': script.name,
+            'pine_id': script.pine_id,
+            'description': script.description,
+            'active': script.active,
+            'created_at': script.created_at.strftime('%Y-%m-%d %H:%M'),
+            'user_count': UserAccess.query.filter_by(pine_script_id=script.id).count()
+        } for script in scripts]
+    })
 
 @main_bp.route('/api/remove-access', methods=['POST'])
 @login_required

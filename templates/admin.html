@@ -153,6 +153,77 @@
                     </div>
                 </div>
             </div>
+
+            <!-- Pine Scripts Management -->
+            <div class="card mt-4">
+                <div class="card-header d-flex justify-content-between align-items-center">
+                    <h5 class="mb-0">
+                        <i class="fas fa-code me-2"></i>Pine Scripts Management
+                    </h5>
+                    <button class="btn btn-success btn-sm" onclick="showAddScriptModal()">
+                        <i class="fas fa-plus me-1"></i>Add New Script
+                    </button>
+                </div>
+                <div class="card-body p-0">
+                    <div class="table-responsive">
+                        <table class="table table-hover mb-0" id="scriptsTable">
+                            <thead class="table-dark">
+                                <tr>
+                                    <th>Name</th>
+                                    <th>Pine ID</th>
+                                    <th>Description</th>
+                                    <th>Status</th>
+                                    <th>Users</th>
+                                    <th>Created</th>
+                                    <th>Actions</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                {% for script in pine_scripts %}
+                                <tr id="script-row-{{ script.id }}">
+                                    <td>
+                                        <strong>{{ script.name }}</strong>
+                                    </td>
+                                    <td>
+                                        <code class="text-info">{{ script.pine_id }}</code>
+                                    </td>
+                                    <td>
+                                        <small class="text-muted">{{ script.description or 'No description' }}</small>
+                                    </td>
+                                    <td>
+                                        <span class="badge {{ 'bg-success' if script.active else 'bg-secondary' }}">
+                                            {{ 'Active' if script.active else 'Inactive' }}
+                                        </span>
+                                    </td>
+                                    <td>
+                                        <span class="badge bg-info">
+                                            {{ script.user_accesses|length }} users
+                                        </span>
+                                    </td>
+                                    <td>
+                                        <small>{{ script.created_at.strftime('%Y-%m-%d %H:%M') }}</small>
+                                    </td>
+                                    <td>
+                                        <div class="btn-group" role="group">
+                                            <button class="btn btn-sm btn-outline-warning" 
+                                                    onclick="toggleScript({{ script.id }}, {{ script.active|lower }})"
+                                                    title="{{ 'Deactivate' if script.active else 'Activate' }}">
+                                                <i class="fas {{ 'fa-pause' if script.active else 'fa-play' }}"></i>
+                                            </button>
+                                            <button class="btn btn-sm btn-outline-danger" 
+                                                    onclick="deleteScript({{ script.id }}, '{{ script.name }}')"
+                                                    title="Delete Script">
+                                                <i class="fas fa-trash"></i>
+                                            </button>
+                                        </div>
+                                    </td>
+                                </tr>
+                                {% endfor %}
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+            </div>
         </div>
     </div>
 </div>
@@ -205,6 +276,52 @@
             </div>
             <div class="modal-body" id="accessDetailsContent">
                 <!-- Content will be loaded dynamically -->
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Add Pine Script Modal -->
+<div class="modal fade" id="addScriptModal" tabindex="-1">
+    <div class="modal-dialog">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title">
+                    <i class="fas fa-plus-circle me-2"></i>Add New Pine Script
+                </h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+            </div>
+            <div class="modal-body">
+                <form id="addScriptForm">
+                    <div class="mb-3">
+                        <label for="script_name" class="form-label">
+                            <i class="fas fa-tag me-1"></i>Script Name
+                        </label>
+                        <input type="text" class="form-control" id="script_name" name="script_name" required 
+                               placeholder="e.g., Ultraalgo">
+                    </div>
+                    <div class="mb-3">
+                        <label for="script_pine_id" class="form-label">
+                            <i class="fas fa-code me-1"></i>Pine ID
+                        </label>
+                        <input type="text" class="form-control" id="script_pine_id" name="script_pine_id" required 
+                               placeholder="e.g., PUB;0c59036edcae4c8684c8e17c01eaf137">
+                        <div class="form-text">Format: PUB;[unique-id]</div>
+                    </div>
+                    <div class="mb-3">
+                        <label for="script_description" class="form-label">
+                            <i class="fas fa-file-text me-1"></i>Description (Optional)
+                        </label>
+                        <textarea class="form-control" id="script_description" name="script_description" rows="3"
+                                  placeholder="Brief description of the Pine Script"></textarea>
+                    </div>
+                </form>
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancel</button>
+                <button type="button" class="btn btn-success" onclick="addPineScript()">
+                    <i class="fas fa-plus-circle me-1"></i>Add Script
+                </button>
             </div>
         </div>
     </div>
@@ -303,6 +420,100 @@ function showAlert(message, type) {
             alertDiv.remove();
         }
     }, 5000);
+}
+
+// Pine Script Management Functions
+function showAddScriptModal() {
+    document.getElementById('addScriptForm').reset();
+    const modal = new bootstrap.Modal(document.getElementById('addScriptModal'));
+    modal.show();
+}
+
+function addPineScript() {
+    const formData = new FormData(document.getElementById('addScriptForm'));
+    const data = {
+        name: formData.get('script_name'),
+        pine_id: formData.get('script_pine_id'),
+        description: formData.get('script_description')
+    };
+    
+    fetch('/admin/add-pine-script', {
+        method: 'POST',
+        headers: {
+            'Content-Type': 'application/json',
+        },
+        body: JSON.stringify(data)
+    })
+    .then(response => response.json())
+    .then(data => {
+        if (data.success) {
+            showAlert(`Pine Script "${data.script.name}" added successfully!`, 'success');
+            bootstrap.Modal.getInstance(document.getElementById('addScriptModal')).hide();
+            setTimeout(() => location.reload(), 2000);
+        } else {
+            showAlert(data.message, 'danger');
+        }
+    })
+    .catch(error => {
+        showAlert('Error adding Pine Script: ' + error.message, 'danger');
+    });
+}
+
+function toggleScript(scriptId, currentStatus) {
+    const action = currentStatus ? 'deactivate' : 'activate';
+    
+    if (!confirm(`Are you sure you want to ${action} this Pine Script?`)) {
+        return;
+    }
+    
+    fetch(`/admin/toggle-pine-script/${scriptId}`, {
+        method: 'POST',
+        headers: {
+            'Content-Type': 'application/json',
+        }
+    })
+    .then(response => response.json())
+    .then(data => {
+        if (data.success) {
+            showAlert(data.message, 'success');
+            setTimeout(() => location.reload(), 1500);
+        } else {
+            showAlert(data.message, 'danger');
+        }
+    })
+    .catch(error => {
+        showAlert('Error toggling Pine Script: ' + error.message, 'danger');
+    });
+}
+
+function deleteScript(scriptId, scriptName) {
+    if (!confirm(`Are you sure you want to delete "${scriptName}"? This will remove all user access to this script and cannot be undone.`)) {
+        return;
+    }
+    
+    fetch(`/admin/delete-pine-script/${scriptId}`, {
+        method: 'DELETE',
+        headers: {
+            'Content-Type': 'application/json',
+        }
+    })
+    .then(response => response.json())
+    .then(data => {
+        if (data.success) {
+            showAlert(data.message, 'success');
+            
+            if (data.removed_accesses > 0) {
+                showAlert(`Also removed access for ${data.removed_accesses} user(s)`, 'info');
+            }
+            
+            setTimeout(() => location.reload(), 2000);
+        } else {
+            showAlert(data.message, 'danger');
+        }
+    })
+    .catch(error => {
+        showAlert('Error deleting Pine Script: ' + error.message, 'danger');
+    });
 }
 </script>
 {% endblock %}
