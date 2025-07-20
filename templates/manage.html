@@ -99,17 +99,39 @@
                     <!-- Pine Scripts Selection (Hidden initially) -->
                     <div id="grant-section" style="display: none;">
                         <hr class="my-4">
-                        <h6 class="mb-3">
-                            <i class="fas fa-list me-2"></i>Available Pine Scripts
-                        </h6>
+                        <div class="d-flex justify-content-between align-items-center mb-3">
+                            <h6 class="mb-0">
+                                <i class="fas fa-list me-2"></i>Available Pine Scripts
+                            </h6>
+                            <div>
+                                <button type="button" 
+                                        class="btn btn-outline-primary btn-sm me-2" 
+                                        onclick="selectAllScripts()">
+                                    <i class="fas fa-check-double me-1"></i>Select All
+                                </button>
+                                <button type="button" 
+                                        class="btn btn-outline-secondary btn-sm" 
+                                        onclick="clearAllScripts()">
+                                    <i class="fas fa-times me-1"></i>Clear All
+                                </button>
+                            </div>
+                        </div>
+                        
                         <div id="pine-scripts-container" class="row mb-4">
                             <!-- Scripts will be loaded here -->
+                        </div>
+                        
+                        <div class="text-center mb-3">
+                            <small class="text-muted">
+                                <span id="selected-count">0</span> of <span id="total-count">0</span> scripts selected
+                            </small>
                         </div>
                         
                         <button type="button" 
                                 class="btn btn-success btn-lg w-100" 
                                 onclick="grantAccess()"
-                                id="grant-btn">
+                                id="grant-btn"
+                                disabled>
                             <i class="fas fa-unlock me-2"></i>Grant Access to Selected Scripts
                         </button>
                     </div>
@@ -260,10 +282,10 @@ function displayPineScripts(scripts) {
         const scriptCard = document.createElement('div');
         scriptCard.className = 'col-md-6 col-lg-4 col-12 mb-3';
         scriptCard.innerHTML = `
-            <div class="card h-100">
+            <div class="card h-100 script-card">
                 <div class="card-body">
                     <div class="form-check">
-                        <input class="form-check-input" type="checkbox" value="${script.pine_id}" id="script-${script.id}" checked>
+                        <input class="form-check-input script-checkbox" type="checkbox" value="${script.pine_id}" id="script-${script.id}" onchange="updateSelectionCount()">
                         <label class="form-check-label w-100" for="script-${script.id}">
                             <strong>${script.name}</strong>
                         </label>
@@ -274,6 +296,43 @@ function displayPineScripts(scripts) {
         `;
         container.appendChild(scriptCard);
     });
+    
+    // Update total count and initially select none
+    document.getElementById('total-count').textContent = scripts.length;
+    updateSelectionCount();
+}
+
+function selectAllScripts() {
+    const checkboxes = document.querySelectorAll('.script-checkbox');
+    checkboxes.forEach(checkbox => {
+        checkbox.checked = true;
+    });
+    updateSelectionCount();
+}
+
+function clearAllScripts() {
+    const checkboxes = document.querySelectorAll('.script-checkbox');
+    checkboxes.forEach(checkbox => {
+        checkbox.checked = false;
+    });
+    updateSelectionCount();
+}
+
+function updateSelectionCount() {
+    const checkboxes = document.querySelectorAll('.script-checkbox');
+    const checkedBoxes = document.querySelectorAll('.script-checkbox:checked');
+    
+    document.getElementById('selected-count').textContent = checkedBoxes.length;
+    
+    // Enable/disable grant button based on selection
+    const grantBtn = document.getElementById('grant-btn');
+    if (checkedBoxes.length > 0) {
+        grantBtn.disabled = false;
+        grantBtn.innerHTML = `<i class="fas fa-unlock me-2"></i>Grant Access to ${checkedBoxes.length} Selected Script${checkedBoxes.length > 1 ? 's' : ''}`;
+    } else {
+        grantBtn.disabled = true;
+        grantBtn.innerHTML = `<i class="fas fa-unlock me-2"></i>Grant Access to Selected Scripts`;
+    }
 }
 
 function grantAccess() {
@@ -281,6 +340,54 @@ function grantAccess() {
         showAlert('Please validate your username first', 'warning');
         return;
     }
+    
+    const selectedScripts = [];
+    const checkboxes = document.querySelectorAll('.script-checkbox:checked');
+    
+    if (checkboxes.length === 0) {
+        showAlert('Please select at least one Pine Script', 'warning');
+        return;
+    }
+    
+    checkboxes.forEach(checkbox => {
+        const script = availableScripts.find(s => s.pine_id === checkbox.value);
+        if (script) {
+            selectedScripts.push(script.pine_id);
+        }
+    });
+    
+    showLoading(`Granting access to ${selectedScripts.length} script(s)...`);
+    
+    fetch('/api/grant-access', {
+        method: 'POST',
+        headers: {
+            'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({ 
+            username: validatedUsername,
+            pine_script_ids: selectedScripts
+        })
+    })
+    .then(response => response.json())
+    .then(data => {
+        hideLoading();
+        console.log('Grant access response:', data);
+        
+        if (data.success) {
+            showAlert(`✅ Successfully granted access to ${data.granted_count || selectedScripts.length} script(s)!`, 'success');
+            setTimeout(() => {
+                window.location.reload();
+            }, 2000);
+        } else {
+            showAlert('❌ ' + (data.message || 'Failed to grant access'), 'danger');
+        }
+    })
+    .catch(error => {
+        hideLoading();
+        console.error('Grant access error:', error);
+        showAlert('❌ Error granting access: ' + error.message, 'danger');
+    });
+}
     
     const checkboxes = document.querySelectorAll('#pine-scripts-container input[type="checkbox"]:checked');
     const selectedPineIds = Array.from(checkboxes).map(cb => cb.value);

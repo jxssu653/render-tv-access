@@ -341,7 +341,7 @@ def api_grant_access():
     
     data = request.get_json()
     username = data.get('username', '').strip()
-    pine_ids = data.get('pine_ids', [])
+    pine_ids = data.get('pine_script_ids', data.get('pine_ids', []))
     
     if not username or not pine_ids:
         return jsonify({'success': False, 'message': 'Username and pine script IDs are required'})
@@ -423,21 +423,28 @@ def api_grant_access():
         if granted_count > 0:
             message = f'Successfully granted access to {granted_count} Pine Script(s) for {username}'
             if failed_scripts:
-                message += f'. Failed scripts: {", ".join(failed_scripts)}'
+                message += f'. Failed: {", ".join(failed_scripts)}'
+            
             return jsonify({
                 'success': True,
-                'message': message
+                'message': message,
+                'granted_count': granted_count,
+                'failed_scripts': failed_scripts
             })
         else:
             return jsonify({
                 'success': False,
-                'message': f'Failed to grant access to any scripts. Check TradingView credentials and script permissions.'
+                'message': f'Failed to grant access to any scripts. {", ".join(failed_scripts) if failed_scripts else ""}',
+                'granted_count': 0,
+                'failed_scripts': failed_scripts
             })
     
     except Exception as e:
-        logging.error(f"Grant access error: {str(e)}")
-        db.session.rollback()
-        return jsonify({'success': False, 'message': f'Error: {str(e)}'})
+        logging.error(f"Error granting access: {str(e)}")
+        return jsonify({
+            'success': False,
+            'message': f'Server error: {str(e)}'
+        })
 
 @main_bp.route('/api/remove-access', methods=['POST'])
 @login_required
