@@ -2,8 +2,9 @@ services:
   - type: web
     name: tradingview-access-manager
     env: python
+    runtime: python-3.11.9
     buildCommand: "pip install -r render_requirements.txt"
-    startCommand: "gunicorn --bind 0.0.0.0:$PORT --reuse-port --reload main:app"
+    startCommand: "gunicorn --bind 0.0.0.0:$PORT --reuse-port main:app"
     plan: free
     region: oregon
     branch: main

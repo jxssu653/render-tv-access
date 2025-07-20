@@ -5,11 +5,32 @@
 2. A Render account (free at render.com)
 3. TradingView account credentials
 
+## Troubleshooting SQLAlchemy Issues
+
+**If you encounter SQLAlchemy compatibility errors:**
+
+1. **Run the fix script:**
+   ```bash
+   python fix_render_deployment.py
+   ```
+
+2. **Common SQLAlchemy Error:**
+   ```
+   AssertionError: Class <class 'sqlalchemy.sql.elements.SQLCoreOperations'> directly inherits TypingOnly
+   ```
+   
+   **Solution:** This occurs with Python 3.13+. Use Python 3.11.9 instead:
+   - Update `runtime.txt` to `python-3.11.9`
+   - Use SQLAlchemy 2.0.32+ for better compatibility
+
 ## Step-by-Step Deployment
 
 ### 1. Prepare Your Repository
 ```bash
-# Copy render_requirements.txt to requirements.txt
+# Fix any compatibility issues
+python fix_render_deployment.py
+
+# Copy render_requirements.txt to requirements.txt (if not done by fix script)
 cp render_requirements.txt requirements.txt
 
 # Run the secrets transfer script (optional, for local testing)
@@ -74,9 +95,28 @@ The database tables will be created automatically when the app starts.
 - For production, consider upgrading to a paid plan
 
 ### Troubleshooting
-- Check deployment logs in Render dashboard
-- Ensure all environment variables are set correctly
-- Verify TradingView credentials are valid
+
+**Common Issues:**
+
+1. **SQLAlchemy TypingOnly Error:**
+   - Caused by Python 3.13 compatibility
+   - Solution: Use Python 3.11.9 (set in runtime.txt)
+   - Run: `python fix_render_deployment.py`
+
+2. **Gunicorn Timeout:**
+   - Increase timeout in Procfile: `--timeout 60`
+   - Reduce workers: `--workers 1`
+
+3. **Database Connection:**
+   - Check DATABASE_URL environment variable
+   - Ensure PostgreSQL service is running
+   - Verify database credentials
+
+4. **General Steps:**
+   - Check deployment logs in Render dashboard
+   - Ensure all environment variables are set correctly
+   - Verify TradingView credentials are valid
+   - Use the fix script: `python fix_render_deployment.py`
 
 ### File Structure for Render
 ```
