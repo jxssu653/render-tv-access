@@ -593,6 +593,147 @@ def admin_get_pine_scripts():
         } for script in scripts]
     })
 
+
+# Admin Data Management Routes
+@main_bp.route('/admin/backup', methods=['POST'])
+@login_required
+def admin_create_backup():
+    if not current_user.is_admin:
+        return jsonify({'success': False, 'message': 'Admin access required'}), 403
+    
+    try:
+        from backup_system import BackupManager
+        backup_manager = BackupManager()
+        
+        data = request.get_json() or {}
+        backup_name = data.get('name')
+        
+        backup_file = backup_manager.create_backup(backup_name)
+        if backup_file:
+            return jsonify({
+                'success': True,
+                'message': 'Backup created successfully',
+                'backup_file': os.path.basename(backup_file)
+            })
+        else:
+            return jsonify({
+                'success': False,
+                'message': 'Failed to create backup'
+            })
+    
+    except Exception as e:
+        logging.error(f"Error creating backup: {str(e)}")
+        return jsonify({
+            'success': False,
+            'message': f'Error creating backup: {str(e)}'
+        })
+
+
+@main_bp.route('/admin/backups', methods=['GET'])
+@login_required
+def admin_list_backups():
+    if not current_user.is_admin:
+        return jsonify({'success': False, 'message': 'Admin access required'}), 403
+    
+    try:
+        from backup_system import BackupManager
+        backup_manager = BackupManager()
+        
+        backups = backup_manager.list_backups()
+        backup_data = []
+        
+        for backup in backups:
+            backup_data.append({
+                'name': backup['name'],
+                'size': backup['size'],
+                'size_mb': round(backup['size'] / (1024 * 1024), 2),
+                'modified': backup['modified'].strftime('%Y-%m-%d %H:%M:%S')
+            })
+        
+        return jsonify({
+            'success': True,
+            'backups': backup_data
+        })
+    
+    except Exception as e:
+        logging.error(f"Error listing backups: {str(e)}")
+        return jsonify({
+            'success': False,
+            'message': f'Error listing backups: {str(e)}'
+        })
+
+
+@main_bp.route('/admin/health-check', methods=['GET'])
+@login_required
+def admin_health_check():
+    if not current_user.is_admin:
+        return jsonify({'success': False, 'message': 'Admin access required'}), 403
+    
+    try:
+        from data_recovery import DataRecovery
+        recovery = DataRecovery()
+        
+        health = recovery.check_database_health()
+        return jsonify({
+            'success': True,
+            'health': health
+        })
+    
+    except Exception as e:
+        logging.error(f"Error checking health: {str(e)}")
+        return jsonify({
+            'success': False,
+            'message': f'Error checking health: {str(e)}'
+        })
+
+
+@main_bp.route('/admin/validate-data', methods=['POST'])
+@login_required
+def admin_validate_data():
+    if not current_user.is_admin:
+        return jsonify({'success': False, 'message': 'Admin access required'}), 403
+    
+    try:
+        from data_recovery import DataRecovery
+        recovery = DataRecovery()
+        
+        result = recovery.validate_data_integrity()
+        return jsonify({
+            'success': True,
+            'validation_result': result
+        })
+    
+    except Exception as e:
+        logging.error(f"Error validating data: {str(e)}")
+        return jsonify({
+            'success': False,
+            'message': f'Error validating data: {str(e)}'
+        })
+
+
+@main_bp.route('/admin/recover-defaults', methods=['POST'])
+@login_required
+def admin_recover_defaults():
+    if not current_user.is_admin:
+        return jsonify({'success': False, 'message': 'Admin access required'}), 403
+    
+    try:
+        from data_recovery import DataRecovery
+        recovery = DataRecovery()
+        
+        result = recovery.recover_default_data()
+        return jsonify({
+            'success': True,
+            'recovery_result': result
+        })
+    
+    except Exception as e:
+        logging.error(f"Error recovering defaults: {str(e)}")
+        return jsonify({
+            'success': False,
+            'message': f'Error recovering defaults: {str(e)}'
+        })
+
 @main_bp.route('/api/remove-access', methods=['POST'])
 @login_required
 def api_remove_access():

@@ -1,0 +1,134 @@
+{
+  "timestamp": "2025-07-20T10:34:20.906017",
+  "version": "1.0",
+  "users": [
+    {
+      "id": 1,
+      "email": "admin@tradingview.com",
+      "password_hash": "scrypt:32768:8:1$aXRVbgFbsewrBf27$c33c613b8d1338adc399f0d35dee952c347eb9688993926ba79867eb9e80169433cef19723c9d0d8a919517a60090ddb496237b5b5352528700fa83af8dc84ba",
+      "name": "Admin User",
+      "is_admin": true,
+      "access_key_id": null,
+      "tradingview_username": null,
+      "has_generated_access": false,
+      "created_at": "2025-07-20T08:23:08.106367",
+      "updated_at": "2025-07-20T08:23:08.106370"
+    },
+    {
+      "id": 2,
+      "email": "clipyway@gmail.com",
+      "password_hash": "scrypt:32768:8:1$Yms9IuJdqlDRpV20$473e5c28533f6592f36cd419100366b73d3a44799cadecda29e1376775e471eeca0974b75ab4978dce2aabd433207a59e0bfb3575f759694fbc88be276c82526",
+      "name": "RAMAN",
+      "is_admin": false,
+      "access_key_id": 1,
+      "tradingview_username": null,
+      "has_generated_access": false,
+      "created_at": "2025-07-20T08:27:30.820876",
+      "updated_at": "2025-07-20T09:16:56.043678"
+    }
+  ],
+  "access_keys": [
+    {
+      "id": 1,
+      "key_code": "KIOEKFYLKTVTYA2K",
+      "user_name": "RAMAN",
+      "user_email": "clipyway@gmail.com",
+      "status": "used",
+      "created_by_admin": true,
+      "created_at": "2025-07-20T08:26:49.971379",
+      "used_at": "2025-07-20T08:27:30.743644"
+    }
+  ],
+  "pine_scripts": [
+    {
+      "id": 8,
+      "name": "simplealgo",
+      "pine_id": "PUB;a3690bb3cb3549e7af0378a978f96a43",
+      "description": "Simple and effective trading algorithm",
+      "active": true,
+      "created_at": null
+    },
+    {
+      "id": 12,
+      "name": "infnity algo",
+      "pine_id": "PUB;bfb44fdc5d234c4f8aa5fd06f1bf56a6",
+      "description": "Infinite possibilities trading algorithm",
+      "active": true,
+      "created_at": null
+    },
+    {
+      "id": 13,
+      "name": "Diamond algo",
+      "pine_id": "PUB;504fed266bcf48d8ad1d2c7bbe1927ff",
+      "description": "Premium diamond-grade trading signals",
+      "active": true,
+      "created_at": null
+    },
+    {
+      "id": 7,
+      "name": "Ultraalgo",
+      "pine_id": "PUB;0c59036edcae4c8684c8e17c01eaf137",
+      "description": "Advanced trading algorithm with ultra-fast signals",
+      "active": true,
+      "created_at": null
+    },
+    {
+      "id": 9,
+      "name": "Million moves.",
+      "pine_id": "PUB;53828990c8014de895162ec99f480803",
+      "description": "High-frequency trading signals for maximum moves",
+      "active": true,
+      "created_at": null
+    },
+    {
+      "id": 10,
+      "name": "luxalgo",
+      "pine_id": "PUB;b73e59a4d74e4d3d9a449ad1187b786b",
+      "description": "Premium luxury trading algorithm",
+      "active": true,
+      "created_at": null
+    },
+    {
+      "id": 11,
+      "name": "lux Osi Matrix",
+      "pine_id": "PUB;996c8fa1a3d74270b95e24643df04fd5",
+      "description": "Advanced oscillator matrix for luxury trading",
+      "active": true,
+      "created_at": null
+    },
+    {
+      "id": 14,
+      "name": "Blue signals",
+      "pine_id": "PUB;278e02e275914ad5a5cec9ce0e9d9d22",
+      "description": "Clear blue trading signals for all markets",
+      "active": true,
+      "created_at": null
+    },
+    {
+      "id": 15,
+      "name": "Goatalgo",
+      "pine_id": "PUB;0a056b6e1feb4183abf6e601d4140189",
+      "description": "Greatest of all time trading algorithm",
+      "active": true,
+      "created_at": null
+    },
+    {
+      "id": 16,
+      "name": "xpalgo",
+      "pine_id": "PUB;5e901ec6f78043b4bca09e8c2f911e01",
+      "description": "Experience-powered trading algorithm",
+      "active": true,
+      "created_at": null
+    },
+    {
+      "id": 17,
+      "name": "NovaAlgo",
+      "pine_id": "PUB;f42a2d8c9ede4bc4b005fb8e56b500cc",
+      "description": "New star trading algorithm with explosive signals",
+      "active": true,
+      "created_at": null
+    }
+  ],
+  "user_accesses": [],
+  "access_logs": []
+}

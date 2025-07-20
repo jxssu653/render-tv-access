@@ -140,6 +140,32 @@ Preferred communication style: Simple, everyday language.
 
 ## Recent Changes
 
+### Data Persistence and Backup System - July 20, 2025
+- **Comprehensive Backup System**: Implemented `backup_system.py` with automatic and manual backup functionality
+  - Auto-backup on application startup to prevent data loss
+  - Manual backup creation with custom naming
+  - Complete JSON export of all database tables with relationships
+  - Backup restoration with data validation and integrity checks
+  - Automatic cleanup of old backups (keeps last 10 auto-backups)
+- **Data Recovery System**: Created `data_recovery.py` for data integrity and recovery
+  - Database health checks with comprehensive status reporting
+  - Data validation and automatic fixing of orphaned records
+  - Default data recovery (admin user, Pine Scripts) if missing
+  - Integrity validation for foreign key relationships
+- **Admin Data Management Panel**: Enhanced admin interface with data management tools
+  - "Create Backup" button for manual backups
+  - "Health Check" for real-time database status
+  - "Validate Data" for integrity checks and fixes
+  - Visual status indicators for backup and health status
+- **Command Line Tools**: Added `data_manager.py` for server-side data management
+  - Backup creation, restoration, and listing via CLI
+  - Health checks and data validation from command line
+  - Recovery operations for maintenance and troubleshooting
+- **PostgreSQL Integration**: Enhanced database configuration for production reliability
+  - Connection pooling and health checks configured
+  - Automatic database table creation on startup
+  - Environment-based database URL configuration with Render compatibility
+
 ### Mobile Optimization and Render Deployment Setup - July 20, 2025
 - **Mobile View Optimization**: Enhanced CSS with responsive breakpoints for mobile devices, improved form layouts and card responsiveness
 - **Access Generation Fix**: Improved error handling and logging for TradingView API integration with detailed status tracking

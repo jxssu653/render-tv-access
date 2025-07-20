@@ -53,6 +53,18 @@ with app.app_context():
     import models  # noqa: F401
     db.create_all()
     
+    # Initialize backup system
+    try:
+        from backup_system import BackupManager
+        backup_manager = BackupManager()
+        backup_file = backup_manager.auto_backup()
+        if backup_file:
+            logging.info("Backup system initialized and auto-backup created successfully")
+        else:
+            logging.warning("Backup system initialized but auto-backup failed")
+    except Exception as e:
+        logging.error(f"Failed to initialize backup system: {str(e)}")
+    
     # Create default admin user if it doesn't exist
     admin_user = models.User.query.filter_by(email='admin@tradingview.com').first()
     if not admin_user:

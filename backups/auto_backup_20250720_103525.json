@@ -1,0 +1,22 @@
+{
+  "timestamp": "2025-07-20T10:35:25.942707",
+  "version": "1.0",
+  "users": [
+    {
+      "id": 1,
+      "email": "admin@tradingview.com",
+      "password_hash": "scrypt:32768:8:1$AUyWOHoUidoa7vzw$c01ea3ddefc40e3c2f95872a33fbc468ed13093371b77ba1ba9180d69b473f21e92b67e5e17136053b67c1a4f64f30e392cdef2bd31f72fff7238f4c029a7724",
+      "name": "Admin User",
+      "is_admin": true,
+      "access_key_id": null,
+      "tradingview_username": null,
+      "has_generated_access": false,
+      "created_at": "2025-07-20T10:35:14.814595",
+      "updated_at": "2025-07-20T10:35:14.814598"
+    }
+  ],
+  "access_keys": [],
+  "pine_scripts": [],
+  "user_accesses": [],
+  "access_logs": []
+}

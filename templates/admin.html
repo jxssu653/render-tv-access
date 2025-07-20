@@ -81,6 +81,45 @@
                 </div>
             </div>
 
+            <!-- Data Management Panel -->
+            <div class="card mb-4">
+                <div class="card-header d-flex justify-content-between align-items-center">
+                    <h5 class="mb-0">
+                        <i class="fas fa-database me-2"></i>Data Management
+                    </h5>
+                    <div class="btn-group" role="group">
+                        <button class="btn btn-outline-primary btn-sm" onclick="createBackup()">
+                            <i class="fas fa-save me-1"></i>Create Backup
+                        </button>
+                        <button class="btn btn-outline-info btn-sm" onclick="checkHealth()">
+                            <i class="fas fa-heartbeat me-1"></i>Health Check
+                        </button>
+                        <button class="btn btn-outline-success btn-sm" onclick="validateData()">
+                            <i class="fas fa-check me-1"></i>Validate Data
+                        </button>
+                    </div>
+                </div>
+                <div class="card-body">
+                    <div class="row">
+                        <div class="col-md-6">
+                            <h6><i class="fas fa-shield-alt me-2"></i>Data Protection</h6>
+                            <p class="text-muted small">
+                                Automatic backups are created on startup to prevent data loss. 
+                                The system uses PostgreSQL for reliable data persistence.
+                            </p>
+                            <div id="backup-status" class="mt-2"></div>
+                        </div>
+                        <div class="col-md-6">
+                            <h6><i class="fas fa-tools me-2"></i>System Health</h6>
+                            <p class="text-muted small">
+                                Regular health checks ensure data integrity and identify potential issues.
+                            </p>
+                            <div id="health-status" class="mt-2"></div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
             <!-- Access Keys Table -->
             <div class="card">
                 <div class="card-header">
@@ -515,5 +554,131 @@ function deleteScript(scriptId, scriptName) {
         showAlert('Error deleting Pine Script: ' + error.message, 'danger');
     });
 }
+
+// Data Management Functions
+function createBackup() {
+    if (!confirm('Create a new database backup?')) {
+        return;
+    }
+    
+    const backupName = prompt('Enter backup name (optional):');
+    
+    fetch('/admin/backup', {
+        method: 'POST',
+        headers: {
+            'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({ name: backupName })
+    })
+    .then(response => response.json())
+    .then(data => {
+        if (data.success) {
+            showAlert(`Backup created: ${data.backup_file}`, 'success');
+            updateBackupStatus('✅ Latest backup: ' + data.backup_file);
+        } else {
+            showAlert(data.message, 'danger');
+        }
+    })
+    .catch(error => {
+        showAlert('Error creating backup: ' + error.message, 'danger');
+    });
+}
+
+function checkHealth() {
+    showAlert('Running health check...', 'info');
+    
+    fetch('/admin/health-check', {
+        method: 'GET',
+        headers: {
+            'Content-Type': 'application/json',
+        }
+    })
+    .then(response => response.json())
+    .then(data => {
+        if (data.success) {
+            const health = data.health;
+            let statusHtml = '';
+            
+            if (health.database_accessible && health.tables_exist) {
+                statusHtml = '<span class="badge bg-success">System Healthy</span>';
+                showAlert('Database health check passed', 'success');
+            } else {
+                statusHtml = '<span class="badge bg-danger">Issues Found</span>';
+                showAlert('Database health issues detected', 'warning');
+            }
+            
+            if (health.data_counts) {
+                statusHtml += '<br><small class="text-muted">';
+                statusHtml += `Users: ${health.data_counts.users}, `;
+                statusHtml += `Scripts: ${health.data_counts.pine_scripts}, `;
+                statusHtml += `Accesses: ${health.data_counts.user_accesses}`;
+                statusHtml += '</small>';
+            }
+            
+            updateHealthStatus(statusHtml);
+        } else {
+            showAlert(data.message, 'danger');
+            updateHealthStatus('<span class="badge bg-danger">Check Failed</span>');
+        }
+    })
+    .catch(error => {
+        showAlert('Error checking health: ' + error.message, 'danger');
+        updateHealthStatus('<span class="badge bg-danger">Check Failed</span>');
+    });
+}
+
+function validateData() {
+    if (!confirm('Validate and fix data integrity issues?')) {
+        return;
+    }
+    
+    showAlert('Validating data integrity...', 'info');
+    
+    fetch('/admin/validate-data', {
+        method: 'POST',
+        headers: {
+            'Content-Type': 'application/json',
+        }
+    })
+    .then(response => response.json())
+    .then(data => {
+        if (data.success) {
+            const result = data.validation_result;
+            
+            if (result.fixes_applied && result.fixes_applied.length > 0) {
+                showAlert(`Data validation completed. ${result.fixes_applied.length} issues fixed.`, 'success');
+            } else if (result.issues_found && result.issues_found.length > 0) {
+                showAlert('Data validation found issues but could not fix them.', 'warning');
+            } else {
+                showAlert('Data validation passed. No issues found.', 'success');
+            }
+        } else {
+            showAlert(data.message, 'danger');
+        }
+    })
+    .catch(error => {
+        showAlert('Error validating data: ' + error.message, 'danger');
+    });
+}
+
+function updateBackupStatus(message) {
+    const element = document.getElementById('backup-status');
+    if (element) {
+        element.innerHTML = message;
+    }
+}
+
+function updateHealthStatus(message) {
+    const element = document.getElementById('health-status');
+    if (element) {
+        element.innerHTML = message;
+    }
+}
+
+// Initialize status on page load
+document.addEventListener('DOMContentLoaded', function() {
+    updateBackupStatus('<span class="badge bg-info">Auto-backup on startup</span>');
+    updateHealthStatus('<span class="badge bg-secondary">Click to check</span>');
+});
 </script>
 {% endblock %}
