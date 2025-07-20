@@ -67,7 +67,7 @@
                     <!-- Username Validation Section -->
                     <div id="username-section">
                         <div class="row">
-                            <div class="col-md-8">
+                            <div class="col-md-8 col-12">
                                 <div class="mb-3">
                                     <label for="username" class="form-label">
                                         <i class="fas fa-user me-1"></i>TradingView Username
@@ -82,7 +82,7 @@
                                     </div>
                                 </div>
                             </div>
-                            <div class="col-md-4 d-flex align-items-end">
+                            <div class="col-md-4 col-12 d-flex align-items-end">
                                 <button type="button" 
                                         class="btn btn-primary btn-lg w-100 mb-3" 
                                         onclick="validateUsername()"
@@ -119,7 +119,7 @@
 
             <!-- Information Cards -->
             <div class="row">
-                <div class="col-md-6">
+                <div class="col-md-6 col-12">
                     <div class="card">
                         <div class="card-header">
                             <h6 class="mb-0">
@@ -136,7 +136,7 @@
                         </div>
                     </div>
                 </div>
-                <div class="col-md-6">
+                <div class="col-md-6 col-12">
                     <div class="card">
                         <div class="card-header">
                             <h6 class="mb-0">
@@ -258,17 +258,17 @@ function displayPineScripts(scripts) {
     
     scripts.forEach(script => {
         const scriptCard = document.createElement('div');
-        scriptCard.className = 'col-md-6 col-lg-4 mb-3';
+        scriptCard.className = 'col-md-6 col-lg-4 col-12 mb-3';
         scriptCard.innerHTML = `
             <div class="card h-100">
                 <div class="card-body">
                     <div class="form-check">
                         <input class="form-check-input" type="checkbox" value="${script.pine_id}" id="script-${script.id}" checked>
-                        <label class="form-check-label" for="script-${script.id}">
+                        <label class="form-check-label w-100" for="script-${script.id}">
                             <strong>${script.name}</strong>
                         </label>
                     </div>
-                    ${script.description ? `<small class="text-muted">${script.description}</small>` : ''}
+                    ${script.description ? `<small class="text-muted d-block mt-2">${script.description}</small>` : ''}
                 </div>
             </div>
         `;
@@ -305,11 +305,13 @@ function grantAccess() {
     .then(response => response.json())
     .then(data => {
         hideLoading();
+        console.log('Grant access response:', data);
         if (data.success) {
             showAlert(data.message, 'success');
             setTimeout(() => location.reload(), 2000);
         } else {
             showAlert(data.message, 'danger');
+            console.error('Grant access failed:', data);
         }
     })
     .catch(error => {

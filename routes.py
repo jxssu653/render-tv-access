@@ -297,9 +297,10 @@ def api_validate_username():
     
     try:
         tv_api = TradingViewAPI()
-        is_valid, verified_username = tv_api.validate_username(username)
+        result = tv_api.validate_username(username)
         
-        if is_valid:
+        if result.get('validuser', False):
+            verified_username = result.get('verifiedUserName', username)
             return jsonify({
                 'success': True,
                 'message': f'Username "{verified_username}" is valid',
@@ -356,15 +357,22 @@ def api_grant_access():
         tv_api = TradingViewAPI()
         scripts = PineScript.query.filter(PineScript.pine_id.in_(pine_ids)).all()
         
+        logging.info(f"Attempting to grant access for {username} to {len(pine_ids)} scripts: {pine_ids}")
+        
         # Grant access to all scripts at once
         results = tv_api.grant_access(username, pine_ids)
         
+        logging.info(f"TradingView API results: {results}")
+        
         granted_count = 0
+        failed_scripts = []
+        
         for result in results:
-            if result.get('hasAccess', False):
-                # Find the corresponding script
-                script = next((s for s in scripts if s.pine_id == result['pine_id']), None)
-                if script:
+            pine_id = result.get('pine_id')
+            script = next((s for s in scripts if s.pine_id == pine_id), None)
+            
+            if script:
+                if result.get('hasAccess', False) or result.get('status') == 'Success':
                     # Check if access already exists
                     existing_access = UserAccess.query.filter_by(
                         user_id=current_user.id,
@@ -378,6 +386,7 @@ def api_grant_access():
                             tradingview_username=username
                         )
                         db.session.add(user_access)
+                        logging.info(f"Added access record for script {script.name}")
                     
                     # Log the action
                     log_entry = AccessLog(
@@ -385,24 +394,49 @@ def api_grant_access():
                         username=username,
                         action='grant',
                         pine_script_id=script.pine_id,
-                        status='success'
+                        status='success',
+                        details=f"API Response: {result.get('status', 'Unknown')}"
                     )
                     db.session.add(log_entry)
                     granted_count += 1
+                else:
+                    failed_scripts.append(script.name)
+                    # Log failure
+                    log_entry = AccessLog(
+                        user_id=current_user.id,
+                        username=username,
+                        action='grant',
+                        pine_script_id=script.pine_id,
+                        status='failed',
+                        details=f"API Response: {result.get('status', 'Failed')}"
+                    )
+                    db.session.add(log_entry)
+                    logging.warning(f"Failed to grant access to {script.name}: {result}")
         
-        # Update user flags
-        current_user.has_generated_access = True
-        current_user.tradingview_username = username
+        # Update user flags if any access was granted
+        if granted_count > 0:
+            current_user.has_generated_access = True
+            current_user.tradingview_username = username
         
         db.session.commit()
         
-        return jsonify({
-            'success': True,
-            'message': f'Successfully granted access to {granted_count} Pine Script(s) for {username}'
-        })
+        if granted_count > 0:
+            message = f'Successfully granted access to {granted_count} Pine Script(s) for {username}'
+            if failed_scripts:
+                message += f'. Failed scripts: {", ".join(failed_scripts)}'
+            return jsonify({
+                'success': True,
+                'message': message
+            })
+        else:
+            return jsonify({
+                'success': False,
+                'message': f'Failed to grant access to any scripts. Check TradingView credentials and script permissions.'
+            })
     
     except Exception as e:
         logging.error(f"Grant access error: {str(e)}")
+        db.session.rollback()
         return jsonify({'success': False, 'message': f'Error: {str(e)}'})
 
 @main_bp.route('/api/remove-access', methods=['POST'])

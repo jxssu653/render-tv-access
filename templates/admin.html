@@ -15,11 +15,11 @@
                     </h2>
                     <p class="text-muted mb-0">Manage access keys and user permissions</p>
                 </div>
-                <div>
+                <div class="d-flex flex-column flex-md-row gap-2">
                     <button class="btn btn-primary" onclick="showCreateKeyModal()">
                         <i class="fas fa-plus-circle me-2"></i>Create New Key
                     </button>
-                    <a href="{{ url_for('main.logout') }}" class="btn btn-outline-secondary ms-2">
+                    <a href="{{ url_for('main.logout') }}" class="btn btn-outline-secondary">
                         <i class="fas fa-sign-out-alt me-2"></i>Logout
                     </a>
                 </div>
@@ -27,52 +27,52 @@
 
             <!-- Stats Cards -->
             <div class="row mb-4">
-                <div class="col-md-3">
+                <div class="col-md-3 col-6 mb-3">
                     <div class="card bg-primary text-white">
                         <div class="card-body">
                             <div class="d-flex justify-content-between">
                                 <div>
                                     <h4 class="mb-1">{{ key_data|selectattr('key.status', 'equalto', 'active')|list|length }}</h4>
-                                    <p class="mb-0">Active Keys</p>
+                                    <p class="mb-0 small">Active Keys</p>
                                 </div>
                                 <i class="fas fa-key fa-2x opacity-75"></i>
                             </div>
                         </div>
                     </div>
                 </div>
-                <div class="col-md-3">
+                <div class="col-md-3 col-6 mb-3">
                     <div class="card bg-success text-white">
                         <div class="card-body">
                             <div class="d-flex justify-content-between">
                                 <div>
                                     <h4 class="mb-1">{{ key_data|selectattr('key.status', 'equalto', 'used')|list|length }}</h4>
-                                    <p class="mb-0">Used Keys</p>
+                                    <p class="mb-0 small">Used Keys</p>
                                 </div>
                                 <i class="fas fa-check-circle fa-2x opacity-75"></i>
                             </div>
                         </div>
                     </div>
                 </div>
-                <div class="col-md-3">
+                <div class="col-md-3 col-6 mb-3">
                     <div class="card bg-info text-white">
                         <div class="card-body">
                             <div class="d-flex justify-content-between">
                                 <div>
                                     <h4 class="mb-1">{{ key_data|selectattr('user')|list|length }}</h4>
-                                    <p class="mb-0">Registered Users</p>
+                                    <p class="mb-0 small">Registered Users</p>
                                 </div>
                                 <i class="fas fa-users fa-2x opacity-75"></i>
                             </div>
                         </div>
                     </div>
                 </div>
-                <div class="col-md-3">
+                <div class="col-md-3 col-6 mb-3">
                     <div class="card bg-warning text-dark">
                         <div class="card-body">
                             <div class="d-flex justify-content-between">
                                 <div>
                                     <h4 class="mb-1">{{ key_data|selectattr('accesses')|map(attribute='accesses')|map('length')|sum }}</h4>
-                                    <p class="mb-0">Total Access Grants</p>
+                                    <p class="mb-0 small">Total Access Grants</p>
                                 </div>
                                 <i class="fas fa-chart-line fa-2x opacity-75"></i>
                             </div>
